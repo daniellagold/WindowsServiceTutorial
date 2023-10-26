@@ -16,3 +16,12 @@ C:\Users\i832609\WindowsServiceTutorial\WindowsServiceTurorial\obj\Debug\Windows
 C:\Users\i832609\WindowsServiceTutorial\WindowsServiceTurorial\obj\Debug\WindowsServiceTurorial.csproj.CoreCompileInputs.cache
 C:\Users\i832609\WindowsServiceTutorial\WindowsServiceTurorial\obj\Debug\WindowsServiceTurorial.exe
 C:\Users\i832609\WindowsServiceTutorial\WindowsServiceTurorial\obj\Debug\WindowsServiceTurorial.pdb
+C:\Users\I832609\OneDrive - NationalGeneral\Desktop\WindowsServiceTutorial2\WindowsServiceTurorial\bin\Debug\WindowsServiceTurorial.exe.config
+C:\Users\I832609\OneDrive - NationalGeneral\Desktop\WindowsServiceTutorial2\WindowsServiceTurorial\bin\Debug\WindowsServiceTurorial.exe
+C:\Users\I832609\OneDrive - NationalGeneral\Desktop\WindowsServiceTutorial2\WindowsServiceTurorial\bin\Debug\WindowsServiceTurorial.pdb
+C:\Users\I832609\OneDrive - NationalGeneral\Desktop\WindowsServiceTutorial2\WindowsServiceTurorial\obj\Debug\WindowsServiceTurorial.csproj.AssemblyReference.cache
+C:\Users\I832609\OneDrive - NationalGeneral\Desktop\WindowsServiceTutorial2\WindowsServiceTurorial\obj\Debug\WindowsServiceTurorial.ProjectInstaller.resources
+C:\Users\I832609\OneDrive - NationalGeneral\Desktop\WindowsServiceTutorial2\WindowsServiceTurorial\obj\Debug\WindowsServiceTurorial.csproj.GenerateResource.cache
+C:\Users\I832609\OneDrive - NationalGeneral\Desktop\WindowsServiceTutorial2\WindowsServiceTurorial\obj\Debug\WindowsServiceTurorial.csproj.CoreCompileInputs.cache
+C:\Users\I832609\OneDrive - NationalGeneral\Desktop\WindowsServiceTutorial2\WindowsServiceTurorial\obj\Debug\WindowsServiceTurorial.exe
+C:\Users\I832609\OneDrive - NationalGeneral\Desktop\WindowsServiceTutorial2\WindowsServiceTurorial\obj\Debug\WindowsServiceTurorial.pdb

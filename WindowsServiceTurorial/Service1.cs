@@ -8,12 +8,21 @@ using System.ServiceProcess;
 using System.Text;
 using System.IO;
 using System.Timers;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Runtime.InteropServices;
+using static System.IO.Directory;
 
 namespace WindowsServiceTurorial
 {
     public partial class Service1 : ServiceBase
     {
-        Timer timer = new Timer();
+        string filePath = "C:\\Users\\I832609\\PicturesTest";
+        System.Timers.Timer timer = new System.Timers.Timer();
+        private CancellationTokenSource cts = new CancellationTokenSource();
+        private Task mainTask = null;
+        private TimeSpan FileCheckInterval = TimeSpan.FromMinutes(60);
+        private TimeSpan IntervalAfterFail = TimeSpan.FromMinutes(5);
         public Service1()
         {
             InitializeComponent();
@@ -21,54 +30,65 @@ namespace WindowsServiceTurorial
 
         protected override void OnStart(string[] args)
         {
-            WriteToFile("Hi! Service started at: " + DateTime.Now);
-            Deletefile();
+            mainTask = new Task(DeleteFiles, cts.Token, TaskCreationOptions.LongRunning);
+            mainTask.Start();
+            ServiceStatus serviceStatus = new ServiceStatus();
+            serviceStatus.dwCurrentState = ServiceState.SERVICE_RUNNING;
+            SetServiceStatus(this.ServiceHandle, ref serviceStatus);
+
         }
-        protected void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        public void DeleteFiles()
         {
-            Deletefile();
-        }
-        public void Deletefile()
-        {
+            CancellationToken cancellation = cts.Token;
+            TimeSpan interval = TimeSpan.Zero;
+            DateTime expirationDate = DateTime.Now.AddDays(-30);
+            DirectoryInfo directory = new DirectoryInfo(filePath);
             try
             {
-                timer.Interval = (10000) * 6;
-                timer.Elapsed += new System.Timers.ElapsedEventHandler(timer_Elapsed);
-                DateTime expirationDate = DateTime.Now.AddDays(-30);
-
-                DirectoryInfo directory = new DirectoryInfo(@"C:\Path_Of_Files");
-
-                FileInfo[] Files = (FileInfo[])directory.GetFiles()
-                            .Where(file => file.CreationTime <= expirationDate);
-                //string[] Files = Directory.GetFiles(@"C:\Users\i832609\OneDrive - NationalGeneral\Pictures");
-                WriteToFile(Files.Count() + " files pulled;");
-                bool deletedFiles = false;
-                //string[] Files = Directory.GetFiles(@"\\ngic.com\fs\apps\nps\sqa\DropBox\Graveyard");
-                for (int i = 0; i < Files.Length; i++)
+                while (!cancellation.WaitHandle.WaitOne(interval))
                 {
-                    //Here we will find wheter the file is 7 days old
-                    if (DateTime.Now.Subtract(File.GetCreationTime(Files[i].ToString())).TotalDays > expirationDate.Day)
+                    FileInfo[] Files = (FileInfo[])directory.GetFiles()
+                                .Where(file => file.CreationTime <= expirationDate);
+                    //string[] Files = Directory.GetFiles(@"C:\Users\i832609\OneDrive - NationalGeneral\Pictures");
+                    WriteToFile(Files.Count() + " files pulled;");
+                    bool deletedFiles = false;
+                    //string[] Files = Directory.GetFiles(@"\\ngic.com\fs\apps\nps\sqa\DropBox\Graveyard");
+                    for (int i = 0; i < Files.Length; i++)
                     {
-                        WriteToFile("Deleting " + Files[i].ToString() + " created at: " + File.GetCreationTime(Files[i].ToString()));
-                        File.Delete(Files[i].ToString());
-                        WriteToFile("File Deleted Successfully");
-                        deletedFiles = true;
-                    } 
+                        if (DateTime.Now.Subtract(File.GetCreationTime(Files[i].ToString())).TotalDays > expirationDate.Day)
+                        {
+                            WriteToFile("Deleting " + Files[i].ToString() + " created at: " + File.GetCreationTime(Files[i].ToString()));
+                            File.Delete(Files[i].ToString());
+                            WriteToFile("File Deleted Successfully");
+                            deletedFiles = true;
+                        }
+                    }
+                    if (!deletedFiles)
+                    {
+                        WriteToFile("No files older then 30 days found");
+                    }
+                    if (cancellation.IsCancellationRequested)
+                    {
+                        break;
+                    }
+                    interval = FileCheckInterval;
                 }
-                if (!deletedFiles) 
-                {
-                    WriteToFile("No files older then 30 days found");
-                }
-                timer.Enabled = true;
-                timer.Start();
             }
             catch
             {
+                interval = IntervalAfterFail;
             }
         }
 
         protected override void OnStop()
         {
+            cts.Cancel();
+            mainTask.Wait();
+
+            // Update the service state to Stopped.
+            ServiceStatus serviceStatus = new ServiceStatus();
+            serviceStatus.dwCurrentState = ServiceState.SERVICE_STOPPED;
+            SetServiceStatus(this.ServiceHandle, ref serviceStatus);
             WriteToFile("Service Complete.");
         }
 
@@ -87,5 +107,31 @@ namespace WindowsServiceTurorial
             }
 
         }
+        #region Service State
+        private enum ServiceState
+        {
+            SERVICE_STOPPED = 0x00000001,
+            SERVICE_START_PENDING = 0x00000002,
+            SERVICE_STOP_PENDING = 0x00000003,
+            SERVICE_RUNNING = 0x00000004,
+            SERVICE_CONTINUE_PENDING = 0x00000005,
+            SERVICE_PAUSE_PENDING = 0x00000006,
+            SERVICE_PAUSED = 0x00000007,
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct ServiceStatus
+        {
+            public int dwServiceType;
+            public ServiceState dwCurrentState;
+            public int dwControlsAccepted;
+            public int dwWin32ExitCode;
+            public int dwServiceSpecificExitCode;
+            public int dwCheckPoint;
+            public int dwWaitHint;
+        };
+        [DllImport("advapi32.dll", SetLastError = true)]
+        private static extern bool SetServiceStatus(System.IntPtr handle, ref ServiceStatus serviceStatus);
+        #endregion
     }
 }
